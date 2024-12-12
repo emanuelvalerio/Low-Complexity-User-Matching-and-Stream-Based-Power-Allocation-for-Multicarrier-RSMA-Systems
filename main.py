@@ -7,6 +7,7 @@ import channelModel as ch
 import userMatching as uMatch
 import combinationsVectors as combV
 import optimalPA as optPA
+import rateCalculation
 
 Nt = 4; # Number of antenas at transmitter
 Pmax = 100; # Total power disponible
@@ -25,5 +26,5 @@ x = uMatch.userMatchingAlgorithm(h,N,nUsers,uj);
 combVect = combV.combVector(nUsers,N);
 userMatch = np.hstack((combVect,x));
 P_opt = optPA.optimizedPowerAllocation(h,userMatch,uj,N,nUsers,Pmax);
-
-print(P_opt)
+userRate = rateCalculation.ASPA(h,userMatch,P_opt,uj,N,nUsers);
+print(np.sum(userRate))

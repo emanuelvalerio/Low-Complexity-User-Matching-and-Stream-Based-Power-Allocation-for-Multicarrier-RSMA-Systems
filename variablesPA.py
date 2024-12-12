@@ -1,13 +1,9 @@
 import numpy as np
 import math
 import normalizeVector as norm
+import calculateFc
 
 def varCalculate(h,restX,uj,N,nUsers):
-    def calculateFc(h_1,h_2):
-        inner_product = np.dot(np.conj(h_1).T, h_2) 
-        angle_inner_product = np.angle(inner_product) # Calculando fc 
-        return (h_1 + (h_2 * np.exp(-1j * angle_inner_product))) * (1 / (np.sqrt(2 * (1 + np.abs(inner_product)))));
-
     comb = int((math.factorial(nUsers)/((math.factorial(nUsers-2))*math.factorial(2))));
     vetX = np.zeros((1,N));
     vetY = np.zeros((1,N));
@@ -23,8 +19,6 @@ def varCalculate(h,restX,uj,N,nUsers):
         hni = h[:,n,ii];
         hnj = h[:,n,jj];
         strongest = max(np.linalg.norm(hni),np.linalg.norm(hnj));
-        print(np.linalg.norm(hni))
-        print(np.linalg.norm(hnj))
         if strongest == np.linalg.norm(hni):
             h1 = hni;
             h2 = hnj;
@@ -33,7 +27,7 @@ def varCalculate(h,restX,uj,N,nUsers):
             h_1 = norm.normalization(h,n,ii);
             h_2 = norm.normalization(h,n,jj);
             rho = (1-(np.abs(np.dot(np.conj(h_1).T , h_2))**2));
-            fc = calculateFc(h_1,h_2);
+            fc = calculateFc.calculationFc(h_1,h_2);
         else:
             h1 = hnj;
             h2 = hni;
@@ -42,7 +36,7 @@ def varCalculate(h,restX,uj,N,nUsers):
             h_1 = norm.normalization(h,n,jj);
             h_2 = norm.normalization(h,n,ii);
             rho = (1-(np.abs(np.dot(np.conj(h_1).T , h_2))**2));
-            fc = calculateFc(h_1,h_2);
+            fc = calculateFc.calculationFc(h_1,h_2);
         h1_norm = np.linalg.norm(h_1);
         h2_norm = np.linalg.norm(h_2);
        # vetX[n] = ((h1_norm**2)*rho/3)+((h2_norm**2)*rho/3)+ ((np.abs(np.dot(np.conj(h_1).T,fc))**2)*(h2_norm**2)/3);
