@@ -16,8 +16,8 @@ def varCalculate(h,restX,uj,N,nUsers):
     alpha = np.zeros((1,N));
     weights= np.zeros((2,N));
     for n in range(0,N):
-        aux = np.where(restX[:, 0] == n+1)[0];
-        idx = int(np.where(restX[aux[0]:aux[comb-1],3] != 0)[0]);
+        aux = np.where(restX[:, 0].astype(int) == int(n+1))[0];
+        idx = int(np.where(restX[aux[0]:aux[comb-1]+1,3] != 0)[0]);
         ii = int(restX[aux[idx],1]-1); # decrease in 1 because was increased 1 when the matrix was it built
         jj = int(restX[aux[idx],2]-1);
         hni = h[:,n,ii];

@@ -8,7 +8,6 @@ import userMatching as uMatch
 import combinationsVectors as combV
 import optimalPA as optPA
 
-
 Nt = 4; # Number of antenas at transmitter
 Pmax = 100; # Total power disponible
 N = 2; # Number of subcarriers 
