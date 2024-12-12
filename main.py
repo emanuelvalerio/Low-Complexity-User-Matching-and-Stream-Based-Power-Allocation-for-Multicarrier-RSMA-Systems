@@ -25,5 +25,6 @@ h = ch.channel(Nt,N,nUsers,gamma,dOuterRadius,dInnerRadius);
 x = uMatch.userMatchingAlgorithm(h,N,nUsers,uj);
 combVect = combV.combVector(nUsers,N);
 userMatch = np.hstack((combVect,x));
-P_opt = optPA.optimizedPowerAllocation(h,combVect,uj,N,nUsers,Pmax);
+P_opt = optPA.optimizedPowerAllocation(h,userMatch,uj,N,nUsers,Pmax);
 
+print(P_opt)

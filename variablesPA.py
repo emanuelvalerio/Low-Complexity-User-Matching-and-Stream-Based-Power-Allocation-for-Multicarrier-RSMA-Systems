@@ -17,13 +17,15 @@ def varCalculate(h,restX,uj,N,nUsers):
     weights= np.zeros((2,N));
     for n in range(0,N):
         aux = np.where(restX[:, 0] == n+1)[0];
-        idx = np.where(restX[:aux[comb-1],3] != 0)[0];
-        ii = restX[aux[idx],1]-1; # decrease in 1 because was increased 1 when the matrix was it built
-        jj = restX[aux[idx],2]-1;
+        idx = int(np.where(restX[aux[0]:aux[comb-1],3] != 0)[0]);
+        ii = int(restX[aux[idx],1]-1); # decrease in 1 because was increased 1 when the matrix was it built
+        jj = int(restX[aux[idx],2]-1);
         hni = h[:,n,ii];
         hnj = h[:,n,jj];
         strongest = max(np.linalg.norm(hni),np.linalg.norm(hnj));
-        if strongest == norm(hni):
+        print(np.linalg.norm(hni))
+        print(np.linalg.norm(hnj))
+        if strongest == np.linalg.norm(hni):
             h1 = hni;
             h2 = hnj;
             u1 = uj[ii];
@@ -43,11 +45,11 @@ def varCalculate(h,restX,uj,N,nUsers):
             fc = calculateFc(h_1,h_2);
         h1_norm = np.linalg.norm(h_1);
         h2_norm = np.linalg.norm(h_2);
-        vetX[n] = ((h1_norm**2)*rho/3)+((h2_norm**2)*rho/3)+ ((np.abs(np.dot(np.conj(h_1).T,fc))**2)*(h2_norm**2)/3);
-        vetY[n] = (((h1_norm**2)*(h2_norm**2)*rho**2)/9)+(((h1_norm**2)*(np.abs(np.dot(np.conj(h_1).T,fc))**2)*(h2_norm**2)*rho^2)/9);
-        g1[n] = ((h1_norm**2)*rho/2);
-        g2[n] = ((h2_norm**2)*rho/2);
-        alpha[n] = (np.abs(np.dot(np.conj(h_2).T,fc))**2)*(h2_norm**2);
+       # vetX[n] = ((h1_norm**2)*rho/3)+((h2_norm**2)*rho/3)+ ((np.abs(np.dot(np.conj(h_1).T,fc))**2)*(h2_norm**2)/3);
+       # vetY[n] = (((h1_norm**2)*(h2_norm**2)*rho**2)/9)+(((h1_norm**2)*(np.abs(np.dot(np.conj(h_1).T,fc))**2)*(h2_norm**2)*rho**2)/9);
+        g1[:,n] = ((h1_norm**2)*rho/2);
+        g2[:,n] = ((h2_norm**2)*rho/2);
+        alpha[:,n] = (np.abs(np.dot(np.conj(h_2).T,fc))**2)*(h2_norm**2);
         weights[0,n] = u1;
         weights[1,n] = u2;
     
