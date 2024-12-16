@@ -9,9 +9,10 @@ import combinationsVectors as combV
 import optimalPA as optPA
 import rateCalculation
 import unimodularMatrixBenchmark as benchmark
+import testeDNN as dnn
 
 Nt = 4; # Number of antenas at transmitter
-Pmax = 100; # Total power disponible
+Pmax = 1000; # Total power disponible
 N = 2; # Number of subcarriers 
 nUsers = 4; # Number of users 
 dInnerRadius = 1;
@@ -21,16 +22,21 @@ num_iterations = 1000;
 epsilon = 10^-4;
 posERBx = 0;
 posERBy = 0;
-uj = np.ones((nUsers, 1)); # Vector of weights
+Pn = [(Pmax/N) * x for x in np.ones((N,1))];
+uj = np.ones((nUsers,1)); # Vector of weights
 h = ch.channel(Nt,N,nUsers,gamma,dOuterRadius,dInnerRadius);
 x_lc = uMatch.userMatchingAlgorithm(h,N,nUsers,uj);
 x_tum = benchmark.unimodularMatrixUserMatching(h,Pmax,N,nUsers,uj);
 x_tum = x_tum.reshape(-1, 1)
+x_dnn = dnn.userMatchingDNN(h,nUsers,N,Nt,gamma,dOuterRadius,dInnerRadius,Pn,uj);
 combVect = combV.combVector(nUsers,N);
 userMatch = np.hstack((combVect,x_lc));
 P_opt1 = optPA.optimizedPowerAllocation(h,userMatch,uj,N,nUsers,Pmax);
 P_opt2 = optPA.optimizedPowerAllocation(h,np.hstack((combVect,x_tum)),uj,N,nUsers,Pmax);
+P_opt3 = optPA.optimizedPowerAllocation(h,np.hstack((combVect,x_dnn)),uj,N,nUsers,Pmax);
 userRate_lc = rateCalculation.ASPA(h,userMatch,P_opt1,uj,N,nUsers);
 userRate_tum = rateCalculation.ASPA(h,np.hstack((combVect,x_tum)),P_opt2,uj,N,nUsers);
+userRate_dnn = rateCalculation.ASPA(h,np.hstack((combVect,x_dnn)),P_opt3,uj,N,nUsers);
 print(np.sum(userRate_tum))
 print(np.sum(userRate_lc))
+print(np.sum(userRate_dnn))
