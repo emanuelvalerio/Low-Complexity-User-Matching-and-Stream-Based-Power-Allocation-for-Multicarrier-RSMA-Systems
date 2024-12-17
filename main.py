@@ -1,7 +1,5 @@
-# adaptive power allocation based RSMA sytem
-
 import pandas as pd
-import numpy  as np
+import numpy as np
 import distances as dt
 import channelModel as ch
 import lowComplexityUserMatching as uMatch
@@ -9,34 +7,70 @@ import combinationsVectors as combV
 import optimalPA as optPA
 import rateCalculation
 import unimodularMatrixBenchmark as benchmark
-import testeDNN as dnn
 
-Nt = 4; # Number of antenas at transmitter
-Pmax = 1000; # Total power disponible
-N = 2; # Number of subcarriers 
-nUsers = 4; # Number of users 
-dInnerRadius = 1;
-dOuterRadius = 10;
-gamma = 3; # expoent of path loss Python: Select Interpreter
-num_iterations = 1000;
-epsilon = 10^-4;
-posERBx = 0;
-posERBy = 0;
-Pn = [(Pmax/N) * x for x in np.ones((N,1))];
-uj = np.ones((nUsers,1)); # Vector of weights
-h = ch.channel(Nt,N,nUsers,gamma,dOuterRadius,dInnerRadius);
-x_lc = uMatch.userMatchingAlgorithm(h,N,nUsers,uj);
-x_tum = benchmark.unimodularMatrixUserMatching(h,Pmax,N,nUsers,uj);
-x_tum = x_tum.reshape(-1, 1)
-x_dnn = dnn.userMatchingDNN(h,nUsers,N,Nt,gamma,dOuterRadius,dInnerRadius,Pn,uj);
-combVect = combV.combVector(nUsers,N);
-userMatch = np.hstack((combVect,x_lc));
-P_opt1 = optPA.optimizedPowerAllocation(h,userMatch,uj,N,nUsers,Pmax);
-P_opt2 = optPA.optimizedPowerAllocation(h,np.hstack((combVect,x_tum)),uj,N,nUsers,Pmax);
-P_opt3 = optPA.optimizedPowerAllocation(h,np.hstack((combVect,x_dnn)),uj,N,nUsers,Pmax);
-userRate_lc = rateCalculation.ASPA(h,userMatch,P_opt1,uj,N,nUsers);
-userRate_tum = rateCalculation.ASPA(h,np.hstack((combVect,x_tum)),P_opt2,uj,N,nUsers);
-userRate_dnn = rateCalculation.ASPA(h,np.hstack((combVect,x_dnn)),P_opt3,uj,N,nUsers);
-print(np.sum(userRate_tum))
-print(np.sum(userRate_lc))
-print(np.sum(userRate_dnn))
+# Configurações do sistema
+Nt = 4  # Número de antenas no transmissor
+Pmax = 100  # Potência total disponível
+nUsers = 3  # Número de usuários
+dInnerRadius = 1
+dOuterRadius = 10
+gamma = 3  # Expoente de perda de caminho
+num_iterations = 1000  # Número de repetições
+epsilon = 1e-4
+uj = np.ones((nUsers, 1))  # Vetor de pesos
+
+# Intervalo para o número de subportadoras
+N_values = [2, 4, 6, 8,10,12,14,16,18,20]  # Lista com os valores de N a serem testados
+
+# Lista para armazenar os resultados
+results = []
+
+# Loop sobre os valores de N
+for N in N_values:
+    print(f"\nIniciando experimentos para N = {N} subportadoras...")
+    Pn = [(Pmax / N) * x for x in np.ones((N, 1))]  # Potência inicial por subportadora
+
+    # Repetição dos experimentos
+    for iteration in range(num_iterations):
+        # Geração do canal
+        h = ch.channel(Nt, N, nUsers, gamma, dOuterRadius, dInnerRadius)
+
+        # Algoritmos de alocação de usuários
+        x_lc = uMatch.userMatchingAlgorithm(h, N, nUsers, uj)
+        x_tum = benchmark.unimodularMatrixUserMatching(h, Pmax, N, nUsers, uj)
+        x_tum = x_tum.reshape((-1,1));
+        # Combinação de vetores
+        combVect = combV.combVector(nUsers, N)
+        userMatch = np.hstack((combVect, x_lc))
+
+        # Alocação de potência
+        P_opt1 = optPA.optimizedPowerAllocation(h, userMatch, uj, N, nUsers, Pmax)
+        P_opt2 = optPA.optimizedPowerAllocation(h, np.hstack((combVect, x_tum)), uj, N, nUsers, Pmax)
+
+        # Cálculo da taxa
+        userRate_lc = rateCalculation.ASPA(h, userMatch, P_opt1, uj, N, nUsers)
+        userRate_tum = rateCalculation.ASPA(h, np.hstack((combVect, x_tum)), P_opt2, uj, N, nUsers)
+
+        # Armazenar os resultados
+        results.append({
+            "N": N,
+            "Iteration": iteration + 1,
+            "Sum Rate LC": np.sum(userRate_lc),
+            "Sum Rate TUM": np.sum(userRate_tum)
+        })
+
+        # Feedback no console
+        if (iteration + 1) % 100 == 0 or iteration == 0:
+            print(f"Iteração {iteration + 1}/{num_iterations} - N = {N}, LC: {np.sum(userRate_lc):.4f}, TUM: {np.sum(userRate_tum):.4f}")
+
+# Conversão para DataFrame
+df_results = pd.DataFrame(results)
+
+# Salvar os resultados em um arquivo CSV
+df_results.to_csv("Results/sum_rate_results_varying_N.csv", index=False)
+
+# Exibir resumo final
+summary = df_results.groupby("N")[["Sum Rate LC", "Sum Rate TUM"]].mean()
+print("\nResumo dos Resultados (Médias):")
+print(summary)
+print("\nResultados salvos em 'sum_rate_results_varying_N.csv'")

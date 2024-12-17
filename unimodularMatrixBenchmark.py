@@ -1,5 +1,5 @@
 import numpy as np
-from scipy.optimize import linprog
+from docplex.mp.model import Model
 import pandas as pd
 import math
 import normalizeVector as norm
@@ -80,41 +80,33 @@ def unimodularMatrixUserMatching(h,Pmax,N,nUsers,uj):
     # Assuming Pmax, N, comb, and nUsers are defined elsewhere in the code
     Pn = (Pmax / N) * np.ones(N)
     # Call to totalRateCalculate2 (this should be defined elsewhere in the Python code)
-    f = totalRateCalculate(h,nUsers,N,Pn,uj);
+    f = np.hstack(totalRateCalculate(h,nUsers,N,Pn,uj));
     # Create the Aeq matrix (equivalent to the MATLAB loop)
     Aeq = np.zeros((N, N * comb))
+    # Preencher Aeq conforme o código MATLAB
     for n in range(N):
-        Aeq[n, (((n+1) * comb - (comb - 1))-1):((n+1) * comb)] = np.ones(comb)
+         Aeq[n, (((n+1) * comb - (comb - 1))-1):((n+1) * comb)] = np.ones(comb);
 
-    # Define the beq vector
-    beq = np.ones(N)
+    beq = np.ones(N)  # Vetor de igualdade
+    ub = np.hstack(np.ones_like(f))  # Limites superiores
+    lb = np.hstack(np.zeros_like(f)) # Limites inferiores
 
-    # Set the bounds for the linear programming
-    ub = np.ones_like(f)  # Upper bounds
-    lb = np.zeros_like(f)  # Lower bounds
-    bounds = [(0, 1) for _ in range(len(f))]
-    result = linprog(
-    -f,               # Minimizar -f (maximizar f)
-    A_eq=Aeq,         # Restrições de igualdade
-    b_eq=beq,         # Vetor da restrição de igualdade
-    bounds=bounds,  # Limites inferior e superior
-    method='highs'    # Método de solução
-)
+    # Criar o modelo de otimização
+    opt_model = Model(name="LP_Model")
 
-    # Verificar resultados
-    if result.success:
-        x2 = result.x  # Solução do problema
-        fval1 = -result.fun  # Valor da função objetivo
-        print("Solução encontrada:")
-        print("x2:", x2)
-        print("Valor da função objetivo:", fval1)
-    else:
-        print("Falha ao resolver o problema:", result.message)
+    # Variáveis de decisão (x2 no MATLAB)
+    x_vars = opt_model.continuous_var_list(len(f), lb=lb, ub=ub, name="x")
+    # Função objetivo (maximização de f -> minimização de -f)
+    objective = opt_model.sum(-f[i] * x_vars[i] for i in range(len(f)))
+    opt_model.set_objective('min', objective)
 
-    # Extract the solution
-    x2 = result.x
-    fval1 = result.fun
-    exitflag1 = result.status
-    output1 = result.message
+    # Adicionar restrições de igualdade Aeq * x = beq
+    for i in range(Aeq.shape[0]):
+        opt_model.add_constraint(
+            opt_model.sum(Aeq[i, j] * x_vars[j] for j in range(Aeq.shape[1])) == beq[i],
+            ctname=f"eq_{i}"
+        )
 
-    return x2
+    # Resolver o modelo
+    solution = opt_model.solve()
+    return np.array([solution.get_value(var) for var in x_vars])  # Variáveis de decisão

@@ -7,11 +7,13 @@ import itertools
 import calculateFc
 import normalizeVector as norm
 from itertools import combinations
+import math
+from sklearn.preprocessing import StandardScaler
 
 def userMatchingDNN(h,num_users,num_subcarriers,num_antennas,gamma,outer_radius,inner_radius,Pn,uj):
     # Configurações iniciais
-    num_repetitions = 5000  # Número de repetições para expandir a base de dados
-
+    num_repetitions = 8000  # Número de repetições para expandir a base de dados
+    comb = int((math.factorial(num_users)/((math.factorial(num_users-2))*math.factorial(2))));
     def distance(nUsers, dOuterRadius, dInnerRadius):
         # Gerar as posições dos usuários
         theta = 2 * np.pi * (np.random.rand(nUsers, 1))
@@ -67,7 +69,7 @@ def userMatchingDNN(h,num_users,num_subcarriers,num_antennas,gamma,outer_radius,
                     # Calcular a ortogonalidade do usuário com maior ganho em relação a outros usuários
                     rho = 1 - np.abs(np.dot(np.conj(h[:, subcarrier, max_gain_user]), h[:, subcarrier, user]))**2
                     ortho_list.append(rho)
-
+  
             # Adicionar a média ou outra métrica das ortogonalidades calculadas
             max_gain_orthogonality.append(np.mean(ortho_list))
 
@@ -91,7 +93,6 @@ def userMatchingDNN(h,num_users,num_subcarriers,num_antennas,gamma,outer_radius,
 
         # Variação das distâncias
         distance_variance = np.var(distances)
-
         return gains, ortho_features, entropy_features, distance_variance, correlation_features, max_gain_orthogonality
 
 
@@ -230,7 +231,7 @@ def userMatchingDNN(h,num_users,num_subcarriers,num_antennas,gamma,outer_radius,
     X, y = generate_data(num_users, num_subcarriers, num_antennas, gamma, outer_radius, inner_radius, num_repetitions,uj,Pn)
 
     # Normalização e divisão dos dados
-    scaler = MinMaxScaler();
+    scaler = StandardScaler();
     X = scaler.fit_transform(X);
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
@@ -246,7 +247,7 @@ def userMatchingDNN(h,num_users,num_subcarriers,num_antennas,gamma,outer_radius,
     model.compile(optimizer='rmsprop', loss='binary_crossentropy', metrics=['accuracy'])
 
     # Treinamento
-    history = model.fit(X_train, y_train, epochs=100, batch_size=128, validation_split=0.2, verbose=1)
+    history = model.fit(X_train, y_train, epochs=50, batch_size=64, validation_split=0.2, verbose=1)
 
     # Avaliação do modelo
     loss, accuracy = model.evaluate(X_test, y_test, verbose=0)
@@ -256,29 +257,12 @@ def userMatchingDNN(h,num_users,num_subcarriers,num_antennas,gamma,outer_radius,
     Xval = generate_data_validation(h,num_users, num_subcarriers, outer_radius, inner_radius, 1,uj,Pn);
     Xval = scaler.fit_transform(Xval);
     y_pred_probs = model.predict(Xval, verbose=0)  # Probabilidades previstas
-    y_pred_binary = np.zeros_like(y_pred_probs)  # Vetor binário para armazenar resultados
+    y_pred_binary = np.zeros_like(y_pred_probs, dtype=int)  # Vetor binário para armazenar resultados
+    comb = int((math.factorial(num_users)/((math.factorial(num_users-2))*math.factorial(2))));
 
-    # Conversão para vetor binário com uma seleção por subportadora
-    y_pred_binary = []
-    start_idx = 0
-    for subcarrier in range(num_subcarriers):
-        # Extrair combinações de pares para a subportadora
-        end_idx = start_idx + len(list(combinations(range(num_users), 2)))
-        subcarrier_probs = y_pred_probs[start_idx:end_idx]
-        
-        # Determinar o índice do par com maior probabilidade
-        max_idx = np.argmax(subcarrier_probs)
-        
-        # Criar vetor binário para a subportadora
-        binary_subcarrier = np.zeros_like(subcarrier_probs)
-        binary_subcarrier[max_idx] = 1  # Selecionar o par com maior probabilidade
-        
-        # Adicionar ao vetor final
-        y_pred_binary.extend(binary_subcarrier)
-        start_idx = end_idx  # Atualizar índice inicial para a próxima subportadora
-
-    # Converter para numpy array final
-    y_pred_binary = np.array(y_pred_binary)
+    for n in range(num_subcarriers): 
+       max_index = np.argmax(y_pred_probs[(((n+1) * comb - (comb - 1))-1):((n+1) * comb) ]) 
+       y_pred_binary[n*comb+max_index] = 1;
   
     print("Vetor binário de predição:")
     print(y_pred_binary)
