@@ -20,7 +20,7 @@ epsilon = 1e-4
 uj = np.ones((nUsers, 1))  # Vetor de pesos
 
 # Intervalo para o número de subportadoras
-N_values = [18]  # Lista com os valores de N a serem testados
+N_values = [16]  # Lista com os valores de N a serem testados
 
 # Lista para armazenar os resultados
 results = []
@@ -67,7 +67,7 @@ for N in N_values:
 df_results = pd.DataFrame(results)
 
 # Salvar os resultados em um arquivo CSV
-df_results.to_csv("Results/sum_rate_results_varying_AUX.csv", index=False)
+df_results.to_csv("Results/sum_rate_results_varying_16.csv", index=False)
 
 # Exibir resumo final
 summary = df_results.groupby("N")[["Sum Rate LC", "Sum Rate TUM"]].mean()
