@@ -24,18 +24,18 @@ def commomRate(h,Pnc,n,ii,jj,gamma1,gamma2,rho):
     return np.log2(1+(Nnij/Dnij));
      
 def totalRateCalculate(h,nUsers,N,Pn,uj):
-    cont = 0;
+    cont = -1;
     faux = np.zeros((N*nUsers*(nUsers-1),1));
     f = np.zeros((faux.shape[0] // 2,1));
     test = np.zeros((N*nUsers*(nUsers-1),3));
     comb = ((math.factorial(nUsers)/((math.factorial(nUsers-2))*math.factorial(2))));
-    for jj in range(0,nUsers):
+    for jj in range(nUsers):
         contInit = cont+1;
-        for n in range(0,N):
+        for n in range(N):
             Pn1 = Pn[n]/3;
             Pn2 = Pn[n]/3;
             Pnc = Pn[n]/3; 
-            for ii in range(0,jj-1):
+            for ii in range(jj):
                 cont +=1;
                 pRate1,pRate2,gamma1,gamma2,rho = privateRate(h,n,ii,jj,Pn1,Pn2);
                 cRate = commomRate(h,Pnc,n,ii,jj,gamma1,gamma2,rho);
@@ -51,25 +51,22 @@ def totalRateCalculate(h,nUsers,N,Pn,uj):
                 faux[cont] = (pRate1+Cnij1);
                 values = [n,jj,ii];
                 test[cont,:] = values;
+        
         faux[contInit:cont+1] = faux[contInit:cont+1]*uj[jj];
     auxMatrix =  np.hstack((test,faux));   
     df = pd.DataFrame(auxMatrix) # Convert the numpy array to a pandas DataFrame
     orderedMatrix = df.sort_values(by=[0, 1, 2]).values # Sort by the first, second, and third columns
     idxEqualRows = np.zeros((orderedMatrix.shape[0] // 2, 2));
     cont = 0;
-    for ii in range(0,orderedMatrix.shape[0]):
-        for jj in range(ii+1,orderedMatrix.shape[0]):
-                # Check if the first three columns of the rows are the same
-                if np.array_equal(orderedMatrix[ii, :2], orderedMatrix[jj, :2]):
-                    if cont>=N*comb:
-                        break;
-                    # Add indexes to the list
-                    idxEqualRows[cont, 0] = ii;
-                    idxEqualRows[cont, 1] = jj;
-                    cont += 1
-
     
-    for ii in range(0,idxEqualRows.shape[0]):
+    for ii in range(orderedMatrix.shape[0]):
+        for jj in range(ii+1,orderedMatrix.shape[0]):
+            if (np.array_equal(orderedMatrix[ii,0:3],orderedMatrix[jj,0:3])):
+                idxEqualRows[cont,0] = ii;
+                idxEqualRows[cont,1] = jj;
+                cont+=1;
+    
+    for ii in range(idxEqualRows.shape[0]):
         f[ii] = orderedMatrix[int(idxEqualRows[ii,0]),3] + orderedMatrix[int(idxEqualRows[ii,1]),3];
 
     return f
@@ -99,13 +96,9 @@ def unimodularMatrixUserMatching(h,Pmax,N,nUsers,uj):
     # Função objetivo (maximização de f -> minimização de -f)
     objective = opt_model.sum(-f[i] * x_vars[i] for i in range(len(f)))
     opt_model.set_objective('min', objective)
-
     # Adicionar restrições de igualdade Aeq * x = beq
-    for i in range(Aeq.shape[0]):
-        opt_model.add_constraint(
-            opt_model.sum(Aeq[i, j] * x_vars[j] for j in range(Aeq.shape[1])) == beq[i],
-            ctname=f"eq_{i}"
-        )
+    for n in range(N):
+        opt_model.add_constraint(opt_model.sum(Aeq[n,ii]*x_vars[ii] for ii in range(N*comb)) == beq[n],ctname=f"eq_{n}");
 
     # Resolver o modelo
     solution = opt_model.solve()

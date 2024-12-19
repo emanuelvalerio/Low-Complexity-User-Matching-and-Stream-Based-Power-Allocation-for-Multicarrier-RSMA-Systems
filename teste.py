@@ -1,55 +1,29 @@
-from docplex.mp.model import Model
-import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
 
-# Supondo que os dados h, uj, Pmax, N, e nUsers já estejam definidos
-# Esses valores precisam ser inicializados para que o código funcione
-# Exemplos fictícios para demonstração:
-N = 5  # Número de subportadoras (por exemplo)
-comb = 3  # Número de combinações (exemplo)
-Pmax = 10  # Potência máxima
-nUsers = 2  # Número de usuários
+# Carregar os dados salvos no arquivo CSV
+df_results = pd.read_csv("Results/sum_rate_results_varying_N.csv")
 
-# Suponha que f seja a saída de uma função 'totalRateCalculate2'
-# Aqui, usamos um exemplo fictício
-f = np.random.rand(N * comb)  # Vetor de taxa fictícia
-Aeq = np.zeros((N, N * comb))
+# Calcular a média das taxas para cada valor de N
+summary = df_results.groupby("N")[["Sum Rate LC", "Sum Rate TUM"]].mean().reset_index()
 
-# Preencher Aeq conforme o código MATLAB
-for n in range(N):
-    Aeq[n, n * comb:(n + 1) * comb] = np.ones(comb)
+# Configurar o estilo do seaborn
+sns.set(style="whitegrid")
 
-beq = np.ones(N)  # Vetor de igualdade
-ub = np.ones_like(f)  # Limites superiores
-lb = np.zeros_like(f)  # Limites inferiores
+# Criar o gráfico
+plt.figure(figsize=(10, 6))
+sns.lineplot(data=summary, x="N", y="Sum Rate LC", label="Sum Rate LC", marker="o", linewidth=2)
+sns.lineplot(data=summary, x="N", y="Sum Rate TUM", label="Sum Rate TUM", marker="s", linewidth=2)
 
-# Criar o modelo de otimização
-opt_model = Model(name="LP_Model")
+# Configurar o título e os rótulos dos eixos
+plt.title("Variação da Taxa em Função do Número de Subportadoras", fontsize=14)
+plt.xlabel("Número de Subportadoras (N)", fontsize=12)
+plt.ylabel("Taxa Total (Sum Rate)", fontsize=12)
 
-# Variáveis de decisão (x2 no MATLAB)
-x_vars = opt_model.continuous_var_list(len(f), lb=lb.tolist(), ub=ub.tolist(), name="x")
+# Legenda
+plt.legend(title="Algoritmo", fontsize=10)
 
-# Função objetivo (maximização de f -> minimização de -f)
-objective = opt_model.sum(-f[i] * x_vars[i] for i in range(len(f)))
-opt_model.set_objective('min', objective)
-
-# Adicionar restrições de igualdade Aeq * x = beq
-for i in range(Aeq.shape[0]):
-    opt_model.add_constraint(
-        opt_model.sum(Aeq[i, j] * x_vars[j] for j in range(Aeq.shape[1])) == beq[i],
-        ctname=f"eq_{i}"
-    )
-
-# Resolver o modelo
-solution = opt_model.solve()
-
-# Resultados
-if solution:
-    x2 = np.array([solution.get_value(var) for var in x_vars])  # Variáveis de decisão
-    fval1 = solution.objective_value  # Valor da função objetivo
-    print("Solução encontrada:")
-    print("x2:", x2)
-    print("Valor da função objetivo (fval1):", fval1)
-else:
-    print("Não foi possível encontrar uma solução viável.")
-
-
+# Mostrar o gráfico
+plt.tight_layout()
+plt.show()
