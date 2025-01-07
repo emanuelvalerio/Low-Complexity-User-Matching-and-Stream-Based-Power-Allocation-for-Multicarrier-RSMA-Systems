@@ -7,6 +7,7 @@ import combinationsVectors as combV
 import optimalPA as optPA
 import rateCalculation
 import unimodularMatrixBenchmark as benchmark
+import cvxPA
 
 # Configurações do sistema
 Nt = 4  # Número de antenas no transmissor
@@ -46,10 +47,12 @@ for N in N_values:
         # Alocação de potência
         P_opt1 = optPA.optimizedPowerAllocation(h, userMatch, uj, N, nUsers, Pmax)
         P_opt2 = optPA.optimizedPowerAllocation(h, np.hstack((combVect, x_tum)), uj, N, nUsers, Pmax)
+        P_opt3 = cvxPA.optimizedPowerAllocation(h,userMatch,uj,N,nUsers,Pmax);
 
         # Cálculo da taxa
         userRate_lc = rateCalculation.ASPA(h, userMatch, P_opt1, uj, N, nUsers)
         userRate_tum = rateCalculation.ASPA(h, np.hstack((combVect, x_tum)), P_opt2, uj, N, nUsers)
+        userRate_lc_cvx = rateCalculation.ASPA(h, userMatch, P_opt3, uj, N, nUsers)
 
         # Armazenar os resultados
         results.append({
