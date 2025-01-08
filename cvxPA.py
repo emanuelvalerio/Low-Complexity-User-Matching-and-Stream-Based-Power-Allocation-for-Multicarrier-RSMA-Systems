@@ -13,8 +13,8 @@ def optimizedPowerAllocation(h, combVect, uj, N, nUsers, Pmax):
     for n in range(N):
         u_1,u_2,g1,g2,alpha = variablesPA.varCalculate_per_subcarrier(h,combVect,uj,n,nUsers);
         term1 = u_1 * cp.log(1 + g1 * P_p[n])/np.log(2);
-        term2 = ((u_2 - u_1) / 2) * cp.log(1 + g2 *  P_p[n]) / np.log(2)
-        term3 = ((u_1+u_2) / 2) * cp.log(1 + g2 *  P_p[n] + alpha *  P_c[n])/np.log(2);
+        term2 = ((u_2 - u_1) / 2) * (cp.log(1 + g2 *  P_p[n]) / np.log(2));
+        term3 = ((u_1+u_2) / 2) * (cp.log(1 + g2 *  P_p[n] + alpha *  P_c[n])/np.log(2));
         W.append(term1 + term2 + term3)
 
     objective = cp.Maximize(cp.sum(W))

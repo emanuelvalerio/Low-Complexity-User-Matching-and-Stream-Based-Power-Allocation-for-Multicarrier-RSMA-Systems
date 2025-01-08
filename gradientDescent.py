@@ -40,7 +40,7 @@ def objectiveFun(h,restX,Pn,N,nUsers,uj):
     return sum(faux);
 
 def gradDes(h,restX,nUsers,Pmax,N,uj,epsilon):
-    alpha = 5.1; # step size
+    alpha = 2.1; # step size
     Pn = [(Pmax / N) * x for x in np.ones((N, 1))]  # Initial power per subcarrier
     Pn_prev = [(Pmax / N) * x for x in np.ones((N, 1))];
     t = 0;

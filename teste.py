@@ -24,21 +24,30 @@ epsilon = 1e-4
 uj = np.ones((nUsers, 1))  # Vetor de pesos
 
 # Intervalo para o número de subportadoras
-N_values = [12]  # Lista com os valores de N a serem testados
+N_values = [2]  # Lista com os valores de N a serem testados
 
 # Lista para armazenar os resultados
 results = []
 
-# Conversão inicial para DataFrame
-df_results = pd.DataFrame(results)
-
-# Adicionar salvamento contínuo no loop
+# Repetição dos experimentos
 for N in N_values:
     print(f"\nIniciando experimentos para N = {N} subportadoras...")
     Pn = [(Pmax / N) * x for x in np.ones((N, 1))]  # Potência inicial por subportadora
 
+    # Inicializa listas para acumular as taxas para cada algoritmo
+    sum_rates_streamPA_rand = []
+    sum_rates_streamPA_tum = []
+    sum_rates_streamPA_lc = []
+    sum_rates_EPA_rand = []
+    sum_rates_EPA_tum = []
+    sum_rates_EPA_lc = []
+    sum_rates_ASPA_rand = []
+    sum_rates_ASPA_tum = []
+    sum_rates_ASPA_lc = []
+
     # Repetição dos experimentos
     for iteration in range(num_iterations):
+        print(iteration)
         # Geração do canal
         h = ch.channel(Nt, N, nUsers, gamma, dOuterRadius, dInnerRadius)
 
@@ -54,14 +63,14 @@ for N in N_values:
         userMatch_tum = np.hstack((combVect, x_tum))
         
         # Alocação de potência
-        P_opt_rand = optPA.optimizedPowerAllocation(h, userMatch_rand, uj, N, nUsers, Pmax)
-        P_opt_tum = optPA.optimizedPowerAllocation(h, userMatch_tum, uj, N, nUsers, Pmax)
+        P_opt_rand = cvxPA.optimizedPowerAllocation(h, userMatch_rand, uj, N, nUsers, Pmax)
+        P_opt_tum = cvxPA.optimizedPowerAllocation(h, userMatch_tum, uj, N, nUsers, Pmax)
         P_opt_lc = cvxPA.optimizedPowerAllocation(h, userMatch_lc, uj, N, nUsers, Pmax)
         
         P_EPA_rand = [(Pmax / (2 * N)) * x for x in np.ones((2 * N))]
         P_EPA_tum = [(Pmax / (2 * N)) * x for x in np.ones((2 * N, 1))]
         P_EPA_lc = [(Pmax / (2 * N)) * x for x in np.ones((2 * N, 1))]
-        
+
         P_ASPA_rand = gradDes.gradDes(h, userMatch_rand, nUsers, Pmax, N, uj, epsilon)
         P_ASPA_tum = gradDes.gradDes(h, userMatch_tum, nUsers, Pmax, N, uj, epsilon)
         P_ASPA_lc = gradDes.gradDes(h, userMatch_lc, nUsers, Pmax, N, uj, epsilon)
@@ -83,26 +92,32 @@ for N in N_values:
         userRate_ASPA_tum = rateCalculation.ASPA_optimal_fraction_t(h, userMatch_tum, P_ASPA_tum, optimal_t_tum, uj, N, nUsers)
         userRate_ASPA_lc = rateCalculation.ASPA_optimal_fraction_t(h, userMatch_lc, P_ASPA_lc, optimal_t_lc, uj, N, nUsers)
         
-        # Armazenar os resultados
-        result = {
-            "N": N,
-            "Iteration": iteration + 1,
-            "Sum Rate Stream-Based-PA_rand": np.sum(userRate_opt_rand),
-            "Sum Rate Stream-Based-PA_tum": np.sum(userRate_opt_tum),
-            "Sum Rate Stream-Based-PA_lc": np.sum(userRate_opt_lc),
-            "Sum Rate EPA_rand": np.sum(userRate_EPA_rand),
-            "Sum Rate EPA_tum": np.sum(userRate_EPA_tum),
-            "Sum Rate EPA_lc": np.sum(userRate_EPA_lc),
-            "Sum Rate ASPA_rand": np.sum(userRate_ASPA_rand),
-            "Sum Rate ASPA_tum": np.sum(userRate_ASPA_tum),
-            "Sum Rate ASPA_lc": np.sum(userRate_ASPA_lc)
-        }
-        
-        # Adicionar ao DataFrame
-        # Adicionar ao DataFrame usando pd.concat
-        df_results = pd.concat([df_results, pd.DataFrame([result])], ignore_index=True)
- 
-        
-        # Salvar em CSV
-        df_results.to_csv("sum_rate_x_num_subcarriers_P_10W_8_users_cont2.csv", index=False)
-        print(f"Salvando resultados da iteração {iteration + 1} para N = {N}")
+        # Armazenar os resultados para cada iteração
+        sum_rates_streamPA_rand.append(np.sum(userRate_opt_rand))
+        sum_rates_streamPA_tum.append(np.sum(userRate_opt_tum))
+        sum_rates_streamPA_lc.append(np.sum(userRate_opt_lc))
+        sum_rates_EPA_rand.append(np.sum(userRate_EPA_rand))
+        sum_rates_EPA_tum.append(np.sum(userRate_EPA_tum))
+        sum_rates_EPA_lc.append(np.sum(userRate_EPA_lc))
+        sum_rates_ASPA_rand.append(np.sum(userRate_ASPA_rand))
+        sum_rates_ASPA_tum.append(np.sum(userRate_ASPA_tum))
+        sum_rates_ASPA_lc.append(np.sum(userRate_ASPA_lc))
+
+    # Calcular a média das taxas após 1000 iterações
+    media_rates = {
+        "Sum Rate Stream-Based-PA_rand": np.mean(sum_rates_streamPA_rand),
+        "Sum Rate Stream-Based-PA_tum": np.mean(sum_rates_streamPA_tum),
+        "Sum Rate Stream-Based-PA_lc": np.mean(sum_rates_streamPA_lc),
+        "Sum Rate EPA_rand": np.mean(sum_rates_EPA_rand),
+        "Sum Rate EPA_tum": np.mean(sum_rates_EPA_tum),
+        "Sum Rate EPA_lc": np.mean(sum_rates_EPA_lc),
+        "Sum Rate ASPA_rand": np.mean(sum_rates_ASPA_rand),
+        "Sum Rate ASPA_tum": np.mean(sum_rates_ASPA_tum),
+        "Sum Rate ASPA_lc": np.mean(sum_rates_ASPA_lc)
+    }
+    
+    # Exibir
+        # Exibir as médias na tela
+    print(f"\nMédias após {num_iterations} iterações para N = {N} subportadoras:")
+    for key, value in media_rates.items():
+        print(f"{key}: {value:.4f}")

@@ -37,7 +37,7 @@ def ASPA(h,restX,P_opt,uj,N,nUsers):
             gamma1 = 1+(np.linalg.norm(h1)**2)*rho*Pn1;
             gamma2 = 1+(np.linalg.norm(h2)**2)*rho*Pn2;
         
-            if(Pn!=0):
+            if(Pn>0):
                userRate[ii] = userRate[ii] + math.log2(gamma1) + (1/2)*min(math.log2(1+(((np.abs(np.dot(np.conj(h2).T,fc))**2)*Pnc)/(gamma2))),np.log2(1+(((np.abs(np.dot(np.conj(h1).T,fc))**2)*Pnc)/(gamma1))));
                userRate[jj] = userRate[jj] + math.log2(gamma2) + (1/2)*min(math.log2(1+(((np.abs(np.dot(np.conj(h2).T,fc))**2)*Pnc)/(gamma2))),np.log2(1+(((np.abs(np.dot(np.conj(h1).T,fc))**2)*Pnc)/(gamma1))));
         else:
@@ -61,7 +61,7 @@ def ASPA(h,restX,P_opt,uj,N,nUsers):
             gamma1 = 1+(np.linalg.norm(h1)**2)*rho*Pn1;
             gamma2 = 1+(np.linalg.norm(h2)**2)*rho*Pn2;
            
-            if(Pn!=0):
+            if(Pn>0):
                userRate[jj] = userRate[jj] + math.log2(gamma1) + (1/2)*min(math.log2(1+(((np.abs(np.dot(np.conj(h2).T,fc))**2)*Pnc)/(gamma2))),np.log2(1+(((np.abs(np.dot(np.conj(h1).T,fc))**2)*Pnc)/(gamma1))));
                userRate[ii] = userRate[ii] + math.log2(gamma2) + (1/2)*min(math.log2(1+(((np.abs(np.dot(np.conj(h2).T,fc))**2)*Pnc)/(gamma2))),np.log2(1+(((np.abs(np.dot(np.conj(h1).T,fc))**2)*Pnc)/(gamma1))));
     return userRate
