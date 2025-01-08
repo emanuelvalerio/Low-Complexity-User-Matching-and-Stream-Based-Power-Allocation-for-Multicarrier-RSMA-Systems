@@ -24,7 +24,7 @@ epsilon = 1e-4
 uj = np.ones((nUsers, 1))  # Vetor de pesos
 
 # Intervalo para o número de subportadoras
-N_values = [2,3,4,5,6,7,8,9,10,11,12]  # Lista com os valores de N a serem testados
+N_values = [10,11,12]  # Lista com os valores de N a serem testados
 
 # Lista para armazenar os resultados
 results = []
@@ -104,5 +104,5 @@ for N in N_values:
  
         
         # Salvar em CSV
-        df_results.to_csv("sum_rate_x_num_subcarriers_P_10W_8_users.csv", index=False)
+        df_results.to_csv("sum_rate_x_num_subcarriers_P_10W_8_users_cont2.csv", index=False)
         print(f"Salvando resultados da iteração {iteration + 1} para N = {N}")
