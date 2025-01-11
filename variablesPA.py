@@ -26,7 +26,7 @@ def varCalculate(h,restX,uj,N,nUsers):
             u2 = uj[jj];
             h_1 = norm.normalization(h,n,ii);
             h_2 = norm.normalization(h,n,jj);
-            rho = (1-(np.abs(np.dot(np.conj(h_1).T , h_2))**2));
+            rho = (1-(np.abs(np.dot(h_1.conj().T , h_2))**2));
             fc = calculateFc.calculationFc(h_1,h_2);
         else:
             h1 = hnj;
@@ -43,7 +43,7 @@ def varCalculate(h,restX,uj,N,nUsers):
        # vetY[n] = (((h1_norm**2)*(h2_norm**2)*rho**2)/9)+(((h1_norm**2)*(np.abs(np.dot(np.conj(h_1).T,fc))**2)*(h2_norm**2)*rho**2)/9);
         g1[:,n] = ((h1_norm**2)*rho/2);
         g2[:,n] = ((h2_norm**2)*rho/2);
-        alpha[:,n] = (np.abs(np.dot(np.conj(h_2).T,fc))**2)*(h2_norm**2);
+        alpha[:,n] = (np.abs(np.dot(h_2.conj().T,fc))**2)*(h2_norm**2);
         weights[0,n] = u1;
         weights[1,n] = u2;
     

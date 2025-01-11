@@ -22,6 +22,7 @@ def optimizedPowerAllocation(h,combVect,uj,N,nUsers,Pmax):
     result = minimize(funObj, x0, bounds=[(0, None)] * (2 * N), constraints=constraints, options={'disp': False, 'maxiter': 1000})
 
     P_opt = result.x
-    #fval = result.fun
+    fval = result.fun
+    print("fval: ",fval)
     return P_opt
 

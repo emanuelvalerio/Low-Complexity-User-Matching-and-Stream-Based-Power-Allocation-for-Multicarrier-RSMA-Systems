@@ -21,7 +21,7 @@ def optimizedPowerAllocation(h, combVect, uj, N, nUsers, Pmax):
 
     # Restrições
     constraints = [
-        cp.sum(P_p + P_c) <= Pmax,  # Restrição de potência total
+        cp.sum(P_p) +cp.sum(P_c) <= Pmax,  # Restrição de potência total
         P_p >= 0,  # Potência privada não negativa
         P_c >= 0,  # Potência comum não negativa
     ]
