@@ -38,8 +38,8 @@ def ASPA(h,restX,P_opt,uj,N,nUsers):
             gamma2 = 1+(np.linalg.norm(h2)**2)*rho*Pn2;
         
             if(Pn>0):
-               userRate[ii] = userRate[ii] + math.log2(gamma1) + (1/2)*min(math.log2(1+(((np.abs(np.dot(np.conj(h2).T,fc))**2)*Pnc)/(gamma2))),np.log2(1+(((np.abs(np.dot(np.conj(h1).T,fc))**2)*Pnc)/(gamma1))));
-               userRate[jj] = userRate[jj] + math.log2(gamma2) + (1/2)*min(math.log2(1+(((np.abs(np.dot(np.conj(h2).T,fc))**2)*Pnc)/(gamma2))),np.log2(1+(((np.abs(np.dot(np.conj(h1).T,fc))**2)*Pnc)/(gamma1))));
+               userRate[ii] = userRate[ii] + math.log2(gamma1) + (1/2)*min(math.log2(1+(((np.abs(np.dot(np.conj(h2).T,fc))**2)*Pnc)/(gamma2))),math.log2(1+(((np.abs(np.dot(np.conj(h1).T,fc))**2)*Pnc)/(gamma1))));
+               userRate[jj] = userRate[jj] + math.log2(gamma2) + (1/2)*min(math.log2(1+(((np.abs(np.dot(np.conj(h2).T,fc))**2)*Pnc)/(gamma2))),math.log2(1+(((np.abs(np.dot(np.conj(h1).T,fc))**2)*Pnc)/(gamma1))));
         else:
             h1 = hnj;
             h2 = hni;
@@ -62,8 +62,8 @@ def ASPA(h,restX,P_opt,uj,N,nUsers):
             gamma2 = 1+(np.linalg.norm(h2)**2)*rho*Pn2;
            
             if(Pn>0):
-               userRate[jj] = userRate[jj] + math.log2(gamma1) + (1/2)*min(math.log2(1+(((np.abs(np.dot(np.conj(h2).T,fc))**2)*Pnc)/(gamma2))),np.log2(1+(((np.abs(np.dot(np.conj(h1).T,fc))**2)*Pnc)/(gamma1))));
-               userRate[ii] = userRate[ii] + math.log2(gamma2) + (1/2)*min(math.log2(1+(((np.abs(np.dot(np.conj(h2).T,fc))**2)*Pnc)/(gamma2))),np.log2(1+(((np.abs(np.dot(np.conj(h1).T,fc))**2)*Pnc)/(gamma1))));
+               userRate[jj] = userRate[jj] + math.log2(gamma1) + (1/2)*min(math.log2(1+(((np.abs(np.dot(np.conj(h2).T,fc))**2)*Pnc)/(gamma2))),math.log2(1+(((np.abs(np.dot(np.conj(h1).T,fc))**2)*Pnc)/(gamma1))));
+               userRate[ii] = userRate[ii] + math.log2(gamma2) + (1/2)*min(math.log2(1+(((np.abs(np.dot(np.conj(h2).T,fc))**2)*Pnc)/(gamma2))),math.log2(1+(((np.abs(np.dot(np.conj(h1).T,fc))**2)*Pnc)/(gamma1))));
     return userRate
 
 
@@ -87,7 +87,7 @@ def ASPA_optimal_fraction_t(h,restX,P_opt,optimal_t,uj,N,nUsers):
             h_2 = norm.normalization(h,n,jj);
             rho = (1-(np.abs(np.dot(np.conj(h_1).T , h_2))**2));
             fc = calculateFc.calculationFc(h_1,h_2);
-            if(P_opt[n]>0):
+            if(P_opt[n]!=0):
                 Pnc = (1-optimal_t[n])*P_opt[n];
                 Pnp = optimal_t[n]*P_opt[n];
                 g1 = (np.linalg.norm(h1)**2)*rho;
@@ -109,7 +109,7 @@ def ASPA_optimal_fraction_t(h,restX,P_opt,optimal_t,uj,N,nUsers):
             h_2 = norm.normalization(h,n,ii);
             rho = (1-(np.abs(np.dot(np.conj(h_1).T , h_2))**2));
             fc = calculateFc.calculationFc(h_1,h_2);
-            if(P_opt[n]>0):
+            if(P_opt[n]!=0):
                 Pnc = (1-optimal_t[n])*P_opt[n];
                 Pnp = optimal_t[n]*P_opt[n];
                 g1 = (np.linalg.norm(h1)**2)*rho;
@@ -120,6 +120,6 @@ def ASPA_optimal_fraction_t(h,restX,P_opt,optimal_t,uj,N,nUsers):
                 Pn2 = powerStreams[1];
                 gamma1 = 1+(np.linalg.norm(h1)**2)*rho*Pn1;
                 gamma2 = 1+(np.linalg.norm(h2)**2)*rho*Pn2;
-                userRate[jj] = userRate[jj] + math.log2(gamma1) + (1/2)*min(math.log2(1+(((np.abs(np.dot(np.conj(h2).T,fc))**2)*Pnc)/(gamma2))),np.log2(1+(((np.abs(np.dot(np.conj(h1).T,fc))**2)*Pnc)/(gamma1))));
-                userRate[ii] = userRate[ii] + math.log2(gamma2) + (1/2)*min(math.log2(1+(((np.abs(np.dot(np.conj(h2).T,fc))**2)*Pnc)/(gamma2))),np.log2(1+(((np.abs(np.dot(np.conj(h1).T,fc))**2)*Pnc)/(gamma1))));
+                userRate[jj] = userRate[jj] + math.log2(gamma1) + (1/2)*min(math.log2(1+(((np.abs(np.dot(np.conj(h2).T,fc))**2)*Pnc)/(gamma2))),math.log2(1+(((np.abs(np.dot(np.conj(h1).T,fc))**2)*Pnc)/(gamma1))));
+                userRate[ii] = userRate[ii] + math.log2(gamma2) + (1/2)*min(math.log2(1+(((np.abs(np.dot(np.conj(h2).T,fc))**2)*Pnc)/(gamma2))),math.log2(1+(((np.abs(np.dot(np.conj(h1).T,fc))**2)*Pnc)/(gamma1))));
     return userRate

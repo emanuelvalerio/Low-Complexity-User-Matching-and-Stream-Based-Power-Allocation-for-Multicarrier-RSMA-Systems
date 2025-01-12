@@ -37,8 +37,8 @@ def varCalculate(h,restX,uj,N,nUsers):
             h_2 = norm.normalization(h,n,ii);
             rho = (1-(np.abs(np.dot(np.conj(h_1).T , h_2))**2));
             fc = calculateFc.calculationFc(h_1,h_2);
-        h1_norm = np.linalg.norm(h_1);
-        h2_norm = np.linalg.norm(h_2);
+        h1_norm = np.linalg.norm(h1);
+        h2_norm = np.linalg.norm(h2);
        # vetX[n] = ((h1_norm**2)*rho/3)+((h2_norm**2)*rho/3)+ ((np.abs(np.dot(np.conj(h_1).T,fc))**2)*(h2_norm**2)/3);
        # vetY[n] = (((h1_norm**2)*(h2_norm**2)*rho**2)/9)+(((h1_norm**2)*(np.abs(np.dot(np.conj(h_1).T,fc))**2)*(h2_norm**2)*rho**2)/9);
         g1[:,n] = ((h1_norm**2)*rho/2);

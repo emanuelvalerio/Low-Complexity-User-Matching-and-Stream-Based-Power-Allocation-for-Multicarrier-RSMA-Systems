@@ -23,6 +23,5 @@ def optimizedPowerAllocation(h,combVect,uj,N,nUsers,Pmax):
 
     P_opt = result.x
     fval = result.fun
-    print("fval: ",fval)
     return P_opt
 

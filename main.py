@@ -25,7 +25,7 @@ uj = np.ones((nUsers, 1))  # Vetor de pesos
 
 # Intervalo para o número de subportadoras
 N_values = [12]  # Lista com os valores de N a serem testados
-
+nUsers_values = [2,6,10,14,18,22,26];
 # Lista para armazenar os resultados
 results = []
 
@@ -56,7 +56,7 @@ for N in N_values:
         # Alocação de potência
         P_opt_rand = optPA.optimizedPowerAllocation(h, userMatch_rand, uj, N, nUsers, Pmax)
         P_opt_tum = optPA.optimizedPowerAllocation(h, userMatch_tum, uj, N, nUsers, Pmax)
-        P_opt_lc = cvxPA.optimizedPowerAllocation(h, userMatch_lc, uj, N, nUsers, Pmax)
+        P_opt_lc = optPA.optimizedPowerAllocation(h, userMatch_lc, uj, N, nUsers, Pmax)
         
         P_EPA_rand = [(Pmax / (2 * N)) * x for x in np.ones((2 * N))]
         P_EPA_tum = [(Pmax / (2 * N)) * x for x in np.ones((2 * N, 1))]
