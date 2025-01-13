@@ -24,8 +24,7 @@ epsilon = 1e-4
 uj = np.ones((nUsers, 1))  # Vetor de pesos
 
 # Intervalo para o número de subportadoras
-N_values = [12]  # Lista com os valores de N a serem testados
-nUsers_values = [2,6,10,14,18,22,26];
+N_values = [2,6,10,14,18,22,26];# Lista com os valores de N a serem testados
 # Lista para armazenar os resultados
 results = []
 
