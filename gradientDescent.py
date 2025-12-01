@@ -3,7 +3,42 @@ import privateRateCalculation as prc
 import commonRateCalculation as crc
 import math
 
+# This code is a benchmark that reproduces the results from the following paper:
+"""
+J. A. DeCastro and F. R. M. Lima, ‘‘Subcarrier assignment, user matching
+ and power allocation for weighted sum-rate maximization with RSMA,’’
+ in Proc. Global Inf. Infrastruct. Netw. Symp. (GIIS), Sep. 2022, pp. 20–24.
+"""
+
 def partialDerivative(h,restX,Pn,nUsers,n,uj):
+    """
+    Calculates the partial derivative of the Weighted Sum-Rate (WSR) with respect 
+    to the power allocated to subcarrier n.
+
+    Assumption: Within the derivative calculation, power is assumed to be split 
+    equally (1/3) among the Common message and the two Private messages.
+
+    Parameters
+    ----------
+    h : np.ndarray
+        Channel state information (N_rx, N_subcarriers, N_users).
+    matching_matrix : np.ndarray
+        Matrix containing the user pairing information (restX).
+        Format: [subcarrier_idx, user1, user2, active_flag].
+    Pn : float
+        Total power allocated to subcarrier n.
+    nUsers : int
+        Total number of users.
+    n : int
+        Current subcarrier index (0-based).
+    user_weights : np.ndarray
+        Vector of user priorities (uj).
+
+    Returns
+    -------
+    df_dPn : float
+        The gradient value for subcarrier n.
+    """
     comb = int((math.factorial(nUsers)/((math.factorial(nUsers-2))*math.factorial(2))));
     aux = np.where(restX[:, 0].astype(int) == int(n+1))[0];
     idx = int(np.where(restX[aux[0]:aux[comb-1]+1,3] != 0)[0]);
@@ -24,6 +59,9 @@ def partialDerivative(h,restX,Pn,nUsers,n,uj):
     return df_dPn;
 
 def objectiveFun(h,restX,Pn,N,nUsers,uj):
+    """
+    Calculates the total Weighted Sum-Rate (Objective Function).
+    """
     comb = int((math.factorial(nUsers)/((math.factorial(nUsers-2))*math.factorial(2))));
     faux = np.zeros((N,1));
     
@@ -40,6 +78,18 @@ def objectiveFun(h,restX,Pn,N,nUsers,uj):
     return sum(faux);
 
 def gradDes(h,restX,nUsers,Pmax,N,uj,epsilon):
+    """
+    Performs Gradient Descent Power Allocation.
+
+    Iteratively updates power allocation Pn to maximize WSR while satisfying
+    constraints: sum(Pn) = Pmax and Pn >= 0.
+
+    Parameters
+    ----------
+    alpha : float
+        Step size (learning rate) for gradient descent.
+    """
+    
     alpha = 2.1; # step size
     Pn = [(Pmax / N) * x for x in np.ones((N, 1))]  # Initial power per subcarrier
     Pn_prev = [(Pmax / N) * x for x in np.ones((N, 1))];

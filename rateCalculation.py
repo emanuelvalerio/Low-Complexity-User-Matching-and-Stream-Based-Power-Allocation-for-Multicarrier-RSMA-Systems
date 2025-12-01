@@ -4,7 +4,18 @@ import normalizeVector as norm
 import math
 import waterFilling
 
+# This code is a benchmark that reproduces the results from the following paper:
+"""
+E.V.Pereira and F. R.M.Lima,‘‘Adaptive powerallocation among private
+ and common streams for multicarrier RSMA system,’’ in Proc. 19th Int.
+ Symp. Wireless Commun. Syst. (ISWCS), Jul. 2024, pp. 1–6.
+ """
+ 
 def ASPA(h,restX,P_opt,uj,N,nUsers):
+    
+    """
+    Standard ASPA: Accepts a concatenated power vector P_opt [Private... | Common...].
+    """
     comb = int((math.factorial(nUsers)/((math.factorial(nUsers-2))*math.factorial(2))));
     userRate = np.zeros((nUsers,1));
     Pc = P_opt[N:];

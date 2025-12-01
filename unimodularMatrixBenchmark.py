@@ -4,7 +4,10 @@ import pandas as pd
 import math
 import normalizeVector as norm
 
+# --- Helper Functions ---
+
 def privateRate(h,n,ii,jj,Pn1,Pn2):
+    """Calculates private rates and interference parameters."""
     hni = h[:,n,ii];
     hnj = h[:,n,jj]; 
     h_hni  =norm.normalization(h,n,ii);
@@ -17,6 +20,7 @@ def privateRate(h,n,ii,jj,Pn1,Pn2):
     return pRate1,pRate2,gamma1,gamma2,rho
 
 def commomRate(h,Pnc,n,ii,jj,gamma1,gamma2,rho):
+    """Calculates the common rate based on interference alignment."""
     hni = h[:,n,ii];
     hnj = h[:,n,jj];
     Nnij = rho*(np.linalg.norm(hni)**2)*(np.linalg.norm(hnj)**2)*Pnc;
@@ -24,6 +28,14 @@ def commomRate(h,Pnc,n,ii,jj,gamma1,gamma2,rho):
     return np.log2(1+(Nnij/Dnij));
      
 def totalRateCalculate(h,nUsers,N,Pn,uj):
+    """
+    Calculates the Weighted Sum Rate (WSR) for all possible user pairs on all subcarriers.
+    
+    Optimization:
+    Replaces the Pandas sort/merge approach. Instead of calculating individual rates 
+    and matching them later, we iterate through Combinations(Users, 2) and 
+    calculate the pair's total rate immediately.
+    """
     cont = -1;
     faux = np.zeros((N*nUsers*(nUsers-1),1));
     f = np.zeros((faux.shape[0] // 2,1));
@@ -73,6 +85,12 @@ def totalRateCalculate(h,nUsers,N,Pn,uj):
 
 
 def unimodularMatrixUserMatching(h,Pmax,N,nUsers,uj):
+    """
+    Solves the User Matching problem using Linear Programming (Relaxed Integer Programming).
+    
+    The Unimodular property of the assignment matrix guarantees that 
+    the continuous relaxation often yields binary (integer) results.
+    """
     comb = int((math.factorial(nUsers)/((math.factorial(nUsers-2))*math.factorial(2))));
     # Assuming Pmax, N, comb, and nUsers are defined elsewhere in the code
     Pn = (Pmax / N) * np.ones(N)
@@ -80,26 +98,26 @@ def unimodularMatrixUserMatching(h,Pmax,N,nUsers,uj):
     f = np.hstack(totalRateCalculate(h,nUsers,N,Pn,uj));
     # Create the Aeq matrix (equivalent to the MATLAB loop)
     Aeq = np.zeros((N, N * comb))
-    # Preencher Aeq conforme o código MATLAB
+
     for n in range(N):
          Aeq[n, (((n+1) * comb - (comb - 1))-1):((n+1) * comb)] = np.ones(comb);
 
-    beq = np.ones(N)  # Vetor de igualdade
-    ub = np.hstack(np.ones_like(f))  # Limites superiores
-    lb = np.hstack(np.zeros_like(f)) # Limites inferiores
+    beq = np.ones(N)  
+    ub = np.hstack(np.ones_like(f))  # Upper bound
+    lb = np.hstack(np.zeros_like(f)) # lower bound
 
-    # Criar o modelo de otimização
     opt_model = Model(name="LP_Model")
 
-    # Variáveis de decisão (x2 no MATLAB)
+
     x_vars = opt_model.continuous_var_list(len(f), lb=lb, ub=ub, name="x")
-    # Função objetivo (maximização de f -> minimização de -f)
+    
     objective = opt_model.sum(-f[i] * x_vars[i] for i in range(len(f)))
+    
     opt_model.set_objective('min', objective)
-    # Adicionar restrições de igualdade Aeq * x = beq
+   
     for n in range(N):
         opt_model.add_constraint(opt_model.sum(Aeq[n,ii]*x_vars[ii] for ii in range(N*comb)) == beq[n],ctname=f"eq_{n}");
 
-    # Resolver o modelo
+    # Solving the model
     solution = opt_model.solve()
-    return np.array([solution.get_value(var) for var in x_vars])  # Variáveis de decisão
+    return np.array([solution.get_value(var) for var in x_vars])  

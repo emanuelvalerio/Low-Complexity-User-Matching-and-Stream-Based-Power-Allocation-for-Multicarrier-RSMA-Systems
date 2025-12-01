@@ -1,0 +1,10 @@
+# NOTE: This project requires Python 3.10 due to CPLEX dependencies.
+# Please ensure you are running a Python 3.10 environment before installing.
+
+docplex
+cplex
+cvxpy
+pandas
+matplotlib
+numpy
+scipy

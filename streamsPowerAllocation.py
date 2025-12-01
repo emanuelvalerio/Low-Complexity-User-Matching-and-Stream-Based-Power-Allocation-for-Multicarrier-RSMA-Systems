@@ -3,17 +3,53 @@ import waterFilling
 import numpy as np
 import math
 
+# This code is a benchmark that reproduces the results from the following paper:
+"""
+E.V.Pereira and F. R.M.Lima,‘‘Adaptive powerallocation among private
+ and common streams for multicarrier RSMA system,’’ in Proc. 19th Int.
+ Symp. Wireless Commun. Syst. (ISWCS), Jul. 2024, pp. 1–6.
+ """
+ 
 def streams_power_allocation(h, N, nUsers, x, uj, P):
+    """
+    Determines the optimal power splitting fraction 't' for each subcarrier.
+    
+    This function iterates through subcarriers, identifies the active user pair,
+    calculates the regime thresholds (Gamma), and solves for the optimal 
+    fraction of power allocated to private streams.
 
-    # Número de combinações de usuários (nUsers choose 2)
+    Parameters
+    ----------
+    h : np.ndarray
+        Channel matrix (Nt, N, nUsers).
+    N : int
+        Number of subcarriers.
+    nUsers : int
+        Total number of users.
+    matching_matrix : np.ndarray
+        Matrix [Subcarrier, User1, User2, Flag] defining active pairs.
+    uj : np.ndarray
+        User priority weights.
+    P : np.ndarray
+        Power allocation vector per subcarrier.
+
+    Returns
+    -------
+    best_t : np.ndarray
+        Vector of optimal splitting fractions t for each subcarrier.
+        P_private = t * P_total
+        P_common = (1-t) * P_total
+    """
+
     comb = int((math.factorial(nUsers)/((math.factorial(nUsers-2))*math.factorial(2))));
     
-    # Inicializar arrays
+   # Initialize output vector
     rate_per_subcarrier = np.zeros(N)
     best_t = np.zeros(N)
     
     for n in range(N):
-        # Encontre as subportadoras associadas
+        # --- 1. Identify Active User Pair ---
+        # Filter for the current subcarrier and active flag
         aux = np.where(x[:, 0].astype(int) == int(n+1))[0];
         idx = int(np.where(x[aux[0]:aux[comb-1]+1,3] != 0)[0]);
         ii = int(x[aux[idx],1]-1); # decrease in 1 because was increased 1 when the matrix was it built
@@ -21,7 +57,8 @@ def streams_power_allocation(h, N, nUsers, x, uj, P):
         hni = h[:, n, ii]
         hnj = h[:, n, jj]
         
-        # Determinar o maior ganho
+        # --- 2. Order Users (Strong vs Weak) ---
+        # This order is crucial for the SIC decoding assumption in the formulas
         strongest = max(np.linalg.norm(hni), np.linalg.norm(hnj))
         if strongest == np.linalg.norm(hni):
             hn1, hn2 = hni, hnj
@@ -30,17 +67,19 @@ def streams_power_allocation(h, N, nUsers, x, uj, P):
             hn1, hn2 = hnj, hni
             u1, u2 = uj[jj], uj[ii]
         
-        # Normalizar os vetores
+        # --- 3. Calculate Geometry Parameters ---
+        # Normalized Directions 
         h_n1 = hn1 / np.linalg.norm(hn1)
         h_n2 = hn2 / np.linalg.norm(hn2)
         
-        # Calcular rho e Gamma
+        # Rho (Orthogonality factor): 1 - |h1.h2|^2
         rho = (1-(np.abs(np.dot(np.conj(h_n1).T , h_n2))**2));
+        # Gamma: A threshold parameter derived from the WSR derivative conditions
+        # Determines which interference regime the system is in.
         Gamma = (1 / rho) * ((u1 / np.linalg.norm(hn2)**2) - (u2 / np.linalg.norm(hn1)**2))
         
-        # Inicializar t0
         t0 = np.random.rand()
-        
+        # --- 4. Solve for Optimal t ---
         if P[n] > 0:
             t_optimal = optimal_fraction_t(P[n], hn1, hn2, rho, Gamma, np.random.rand(), u1, u2)
         else:
@@ -52,8 +91,13 @@ def streams_power_allocation(h, N, nUsers, x, uj, P):
 
 
 def optimal_fraction_t(P, hn1, hn2, rho, Gamma, t0, u1, u2):
-    import numpy as np
+    """
+    Solves the closed-form quadratic equation for the optimal power split 't'.
     
+    The Weighted Sum-Rate (WSR) function in RSMA is non-convex, but its 
+    stationary points can be found by solving roots of a polynomial.
+    The solution space is divided into 3 regimes based on weights and channel gains.
+    """
     t = np.linspace(0.001, 1, 1000)
     Pk = t0 * P
     Pc = (1 - t0) * P

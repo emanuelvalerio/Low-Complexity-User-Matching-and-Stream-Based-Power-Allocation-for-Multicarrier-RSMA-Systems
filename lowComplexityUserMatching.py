@@ -3,6 +3,33 @@ import math
 import normalizeVector as nv
 
 def userMatchingAlgorithm(h,N,nUsers,uj):
+    """
+    Implements the low-complexity user matching algorithm (Algorithm 1) from the reference paper.
+    
+    This function pairs users on each subcarrier based on channel gain and 
+    quasi-orthogonality to maximize spectral efficiency while maintaining fairness.
+
+    Parameters
+    ----------
+    h : np.ndarray
+        Channel state information matrix. 
+        Expected shape: (N_rx, N_subcarriers, N_users).
+    N : int
+        Number of subcarriers.
+    nUsers : int
+        Total number of users.
+    uj : np.ndarray
+        Vector containing user weights (priorities) for weighted sum-rate maximization.
+    beta : float, optional
+        Weighting factor for the correlation metric (default is 0.99). 
+        Controls the trade-off between orthogonality and user weights.
+
+    Returns
+    -------
+    x : np.ndarray
+        Binary association vector of shape (N * n_combinations, 1).
+        A '1' indicates that a specific pair of users is active on a specific subcarrier.
+    """
 
     gainMatrix = np.zeros((N,nUsers));
     minMaxGains = np.zeros((N,2));

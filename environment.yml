@@ -1,0 +1,15 @@
+name: rsma_optimization
+channels:
+  - ibmdecisionoptimization  # Official IBM channel for CPLEX
+  - conda-forge              # Channel for CVXPY and others
+  - defaults
+dependencies:
+  - python=3.10              # REQUIRED: CPLEX is strictly compatible with Python 3.10
+  - pip
+  - cplex
+  - docplex
+  - cvxpy
+  - pandas
+  - matplotlib
+  - numpy
+  - scipy
