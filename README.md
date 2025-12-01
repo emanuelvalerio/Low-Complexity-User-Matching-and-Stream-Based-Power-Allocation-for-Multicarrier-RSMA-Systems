@@ -55,7 +55,7 @@ If you are not using Anaconda, ensure you have **Python 3.10** installed on your
 
 ```bash
 pip install -r requirements.txt
-
+```
 ## 🚀 Usage
 
 ### 1. Running the Simulation
@@ -63,7 +63,7 @@ To execute the main simulation loop, which iterates through different numbers of
 
 ```bash
 python main.py
-
+```
 📂 Project Structure
 main.py: Main script for system configuration and Monte Carlo loops.
 
