@@ -64,7 +64,7 @@ To execute the main simulation loop, which iterates through different numbers of
 ```bash
 python main.py
 ```
-📂 Project Structure
+## 📂 Project Structure
 main.py: Main script for system configuration and Monte Carlo loops.
 
 results.py: Script for processing data and plotting figures.
@@ -79,5 +79,5 @@ SBPA.py: Stream-Based Power Allocation implementation.
 
 Results/: Directory where CSV logs are stored.
 
-⚖️ License
+## ⚖️ License
 This project is licensed under the MIT License - see the LICENSE file for details.
